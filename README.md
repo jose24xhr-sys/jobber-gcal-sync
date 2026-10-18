@@ -1,6 +1,6 @@
 # Jobber Job Visits → Google Calendar (near real-time)
 
-> **Replicating this for another business?** Start with [`docs/`](docs/): requirements, a phase-by-phase replication guide, operations/troubleshooting, and a paste-ready agent prompt (PDFs in `docs/pdf/`).
+> **Replicating this for another business?** Start with [`docs/`](docs/): requirements, a phase-by-phase replication guide, operations/troubleshooting, a paste-ready agent prompt, a code guide (Cloudflare + GitHub) and a full source appendix (PDFs in `docs/pdf/`).
 
 A Cloudflare Worker that mirrors **scheduled Jobber Job Visits** into each assigned team member's Google Calendar within seconds. It replaces Jobber's iCal subscription, which can take 12–24 hours to refresh. Routemize then reads those calendars as availability blocks.
 

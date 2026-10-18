@@ -1,6 +1,6 @@
 # Agent kickoff prompt
 
-Paste the block below into a new Claude agent session. Attach `01-REQUIREMENTS.md`, `02-REPLICATION-GUIDE.md`, `03-OPERATIONS.md` (or the PDFs) and give it access to the code repo.
+Paste the block below into a new Claude agent session. Attach the Replication Kit PDF (or `01`–`05` docs) and either give it access to the code repo or attach `jobber-gcal-sync-source.zip`.
 
 ---
 
@@ -10,7 +10,8 @@ It is a Cloudflare Worker (code is complete and tested — do not rewrite it) th
 scheduled Jobber Job Visits into each assigned estimator's Google Calendar within seconds,
 so Routemize sees them as availability and can create job stops from them.
 
-Source code: GitHub repo <SOURCE_REPO> (copy it into a new private repo for this business).
+Source code: <SOURCE_REPO or "the attached jobber-gcal-sync-source.zip"> (copy it into a new private repo
+for this business). 05-CODE-GUIDE.md explains every file and the Cloudflare/GitHub wiring.
 Follow 02-REPLICATION-GUIDE.md phase by phase. Do not start a phase until the previous
 phase's "Verify" check passes. Use 01-REQUIREMENTS.md for every name, scope, topic and
 setting. Use 03-OPERATIONS.md when anything fails — check Cloudflare Observability logs
