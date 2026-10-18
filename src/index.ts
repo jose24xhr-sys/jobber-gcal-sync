@@ -3,6 +3,7 @@ import { classifyTopic } from "./config";
 import { JOBBER_SIGNATURE_HEADER, parseJobberWebhook, verifyJobberSignature } from "./jobber/webhook";
 import { handleJobberCallback, startJobberOAuth } from "./jobber/oauth";
 import { handleAdmin, isAdmin } from "./admin";
+import { handleAdminPage, handleJobberStartPage } from "./adminUi";
 import { processMessage } from "./sync/processor";
 import { PermanentError, RetryableError, queueBackoffSeconds } from "./util/retry";
 import * as repo from "./db/repo";
@@ -45,12 +46,12 @@ export default {
       if (url.pathname === "/health") return new Response("ok");
       if (url.pathname === "/webhooks/jobber" && request.method === "POST") return await handleWebhook(env, request);
 
-      if (url.pathname === "/oauth/jobber/start" && request.method === "GET") {
-        // Accept the admin token as ?key= so the link can be opened in a browser.
-        const key = url.searchParams.get("key");
-        const authed = isAdmin(env, request) || (key !== null && isAdmin(env, new Request(request.url, { headers: { authorization: `Bearer ${key}` } })));
-        if (!authed) return new Response("unauthorized", { status: 401 });
-        return await startJobberOAuth(env);
+      if (url.pathname === "/oauth/jobber/start" && (request.method === "GET" || request.method === "POST")) {
+        if (request.method === "GET" && isAdmin(env, request)) return await startJobberOAuth(env);
+        return await handleJobberStartPage(env, request, url);
+      }
+      if ((url.pathname === "/admin" || url.pathname === "/admin/") && (request.method === "GET" || request.method === "POST")) {
+        return await handleAdminPage(env, request);
       }
       if (url.pathname === "/oauth/jobber/callback" && request.method === "GET") return await handleJobberCallback(env, request);
       if (url.pathname.startsWith("/admin/")) return await handleAdmin(env, request, url);
