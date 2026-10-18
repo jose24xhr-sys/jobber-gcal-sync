@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { decryptString, encryptString, b64decode, pkceChallenge } from "../src/util/crypto";
-import { buildServiceAccountJwt } from "../src/google/auth";
+import { buildServiceAccountJwt, normalizePrivateKey } from "../src/google/auth";
 import { validateJobVisit } from "../src/sync/validate";
 import { deterministicEventId } from "../src/sync/mapEvent";
 import { decodeEncodedId } from "../src/jobber/ids";
@@ -39,6 +39,31 @@ describe("crypto", () => {
     expect(claims).toMatchObject({ iss: "sync@proj.iam.gserviceaccount.com", scope: "https://www.googleapis.com/auth/calendar.events", aud: "https://oauth2.googleapis.com/token" });
     const sig = b64decode(s!.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (s!.length % 4)) % 4));
     expect(await crypto.subtle.verify("RSASSA-PKCS1-v1_5", kp.publicKey, sig, new TextEncoder().encode(`${h}.${c}`))).toBe(true);
+  });
+});
+
+describe("service-account key paste formats", () => {
+  it("signs with the key pasted as raw PEM, quoted JSON value, or the whole JSON file", async () => {
+    const kp = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
+    const b64 = btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.exportKey("pkcs8", kp.privateKey))));
+    const lines = b64.match(/.{1,64}/g)!.join("\n");
+    const pemReal = `-----BEGIN PRIVATE KEY-----\n${lines}\n-----END PRIVATE KEY-----\n`;
+    const jsonValue = JSON.stringify(pemReal); // "-----BEGIN...\n...\n"
+    const variants = [
+      pemReal,
+      jsonValue.slice(1, -1), // escaped \n without quotes
+      jsonValue, // with quotes
+      `${jsonValue},`, // with trailing comma
+      JSON.stringify({ type: "service_account", client_email: "x@y.iam.gserviceaccount.com", private_key: pemReal }, null, 2),
+    ];
+    for (const v of variants) {
+      expect(normalizePrivateKey(v)).toBe(b64);
+      await expect(buildServiceAccountJwt("x@y.iam.gserviceaccount.com", v)).resolves.toMatch(/^[\w-]+\.[\w-]+\.[\w-]+$/);
+    }
+  });
+
+  it("a truncated key fails with a clear message (retried so visits sync once fixed)", async () => {
+    await expect(buildServiceAccountJwt("x@y", "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADAN\n-----END PRIVATE KEY-----")).rejects.toThrow(/not a valid private key/);
   });
 });
 

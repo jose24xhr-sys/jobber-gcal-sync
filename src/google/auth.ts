@@ -82,10 +82,49 @@ export async function buildServiceAccountJwt(clientEmail: string, privateKeyPem:
   return `${unsigned}.${b64url(sig)}`;
 }
 
+/**
+ * Accepts the private key however it was pasted into the dashboard:
+ *  - the raw PEM, with real newlines or literal "\n" (or "\\n") escapes
+ *  - the JSON string value including surrounding quotes and/or a trailing comma
+ *  - the entire service-account JSON file
+ * Returns only the base64 body between the BEGIN/END markers.
+ */
+export function normalizePrivateKey(input: string): string {
+  let s = input.trim();
+  if (s.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(s) as { private_key?: string };
+      if (parsed.private_key) s = parsed.private_key;
+    } catch {
+      /* not valid JSON; fall through */
+    }
+  }
+  s = s.replace(/\\\\n/g, "\n").replace(/\\n/g, "\n").replace(/\\r/g, "");
+  const m = /-----BEGIN (?:RSA )?PRIVATE KEY-----([\s\S]*?)-----END (?:RSA )?PRIVATE KEY-----/.exec(s);
+  const body = m ? m[1]! : s;
+  return body.replace(/[^A-Za-z0-9+/=]/g, "");
+}
+
+/** Non-secret shape info, safe to log, to diagnose a bad paste. */
+export function describePrivateKey(input: string): Record<string, unknown> {
+  const body = normalizePrivateKey(input);
+  return {
+    rawLength: input.length,
+    hasBeginMarker: /BEGIN (RSA )?PRIVATE KEY/.test(input),
+    hasEndMarker: /END (RSA )?PRIVATE KEY/.test(input),
+    startsWithBrace: input.trim().startsWith("{"),
+    startsWithQuote: input.trim().startsWith('"'),
+    base64Length: body.length,
+  };
+}
+
 async function importPkcs8(pem: string): Promise<CryptoKey> {
-  const body = pem
-    .replace(/\\n/g, "\n")
-    .replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----/g, "")
-    .replace(/\s+/g, "");
-  return crypto.subtle.importKey("pkcs8", b64decode(body), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  const body = normalizePrivateKey(pem);
+  try {
+    return await crypto.subtle.importKey("pkcs8", b64decode(body), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  } catch (err) {
+    log("error", "GOOGLE_SA_PRIVATE_KEY could not be read — re-paste the private_key value from the JSON key file", describePrivateKey(pem));
+    // Retryable on purpose: visits queued while the secret is wrong sync once it is fixed.
+    throw new RetryableError(`GOOGLE_SA_PRIVATE_KEY is not a valid private key (${String(err)})`, 120);
+  }
 }
