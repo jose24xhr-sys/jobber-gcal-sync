@@ -10,7 +10,7 @@ enabled = true
 # Latest active Jobber GraphQL version per the changelog (checked 2026-10-13).
 JOBBER_API_VERSION = "2026-09-25"
 # Must match the OAuth Callback URL configured on the Jobber app exactly.
-JOBBER_REDIRECT_URI = "https://jobber-gcal-sync.YOUR-SUBDOMAIN.workers.dev/oauth/jobber/callback"
+JOBBER_REDIRECT_URI = "https://jobber-gcal-sync.joseramirez.workers.dev/oauth/jobber/callback"
 # "service_account" (recommended) or "oauth"
 GOOGLE_AUTH_MODE = "service_account"
 # Used only for all-day visits (Google all-day events need a calendar date).
@@ -23,7 +23,7 @@ EVENT_TITLE_PREFIX = ""
 [[d1_databases]]
 binding = "DB"
 database_name = "jobber_gcal_sync"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "f112efbe-2c51-4da7-911d-4c7adcbdfdff"
 migrations_dir = "migrations"
 
 [[queues.producers]]
