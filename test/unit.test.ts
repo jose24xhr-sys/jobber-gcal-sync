@@ -15,6 +15,13 @@ describe("crypto", () => {
     expect(await decryptString(key, enc)).toBe("secret-token");
   });
 
+  it("accepts a passphrase-style TOKEN_ENCRYPTION_KEY (stretched with SHA-256)", async () => {
+    const pass = "not-base64 $&# passphrase";
+    const enc = await encryptString(pass, "tok");
+    expect(await decryptString(pass, enc)).toBe("tok");
+    await expect(decryptString("other passphrase", enc)).rejects.toThrow();
+  });
+
   it("PKCE S256 = base64url(sha256(verifier)) without padding", async () => {
     const verifier = "dBjftJeZ4CVP-mJ92K1N7iBFykGJTvP6OGNz1k7dOzc";
     const challenge = await pkceChallenge(verifier);

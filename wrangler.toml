@@ -2,6 +2,9 @@ name = "jobber-gcal-sync"
 main = "src/index.ts"
 compatibility_date = "2026-09-01"
 
+# Keep variables added in the Cloudflare dashboard when GitHub pushes redeploy the Worker.
+keep_vars = true
+
 [observability]
 enabled = true
 
@@ -19,6 +22,9 @@ DEFAULT_TIMEZONE = "America/New_York"
 # Confirm the exact names in the Jobber Developer Center / GraphiQL (graphql/introspect-webhook-topics.graphql).
 ALLOWED_TOPICS = "VISIT_CREATE,VISIT_UPDATE,VISIT_COMPLETE,VISIT_DESTROY,JOB_UPDATE,JOB_DESTROY,APP_DISCONNECT"
 EVENT_TITLE_PREFIX = ""
+# Not secret (public identifiers) — kept here so deploys never drop them.
+JOBBER_CLIENT_ID = "8e03ed08-18b0-4477-bcb6-46b2ecaa1c13"
+GOOGLE_SA_CLIENT_EMAIL = "jobber-sync@jobber-gcal-sync.iam.gserviceaccount.com"
 
 [[d1_databases]]
 binding = "DB"

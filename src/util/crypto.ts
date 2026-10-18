@@ -56,13 +56,26 @@ export function timingSafeEqual(a: string, b: string): boolean {
 
 const keyCache = new Map<string, Promise<CryptoKey>>();
 
-function aesKey(base64Key: string): Promise<CryptoKey> {
-  let k = keyCache.get(base64Key);
+/**
+ * TOKEN_ENCRYPTION_KEY: ideally 32 random bytes, base64. Any other string (a passphrase) is accepted and
+ * stretched to a 256-bit key with SHA-256, so a hand-typed secret still works.
+ */
+async function rawKeyBytes(secret: string): Promise<Uint8Array> {
+  try {
+    const raw = b64decode(secret.trim());
+    if (raw.length === 32) return raw;
+  } catch {
+    /* not base64 — treat as passphrase */
+  }
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(secret)));
+}
+
+function aesKey(secret: string): Promise<CryptoKey> {
+  let k = keyCache.get(secret);
   if (!k) {
-    const raw = b64decode(base64Key);
-    if (raw.length !== 32) throw new Error("TOKEN_ENCRYPTION_KEY must be 32 bytes, base64 encoded");
-    k = crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
-    keyCache.set(base64Key, k);
+    if (!secret) throw new Error("TOKEN_ENCRYPTION_KEY is not set");
+    k = rawKeyBytes(secret).then((raw) => crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]));
+    keyCache.set(secret, k);
   }
   return k;
 }
