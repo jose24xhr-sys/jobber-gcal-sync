@@ -56,6 +56,24 @@ export const VISIT_QUERY = /* GraphQL */ `
   }
 `;
 
+/** Visit IDs of one Job (used for JOB_CREATE). Paginated; capped by MAX_JOB_VISITS in the processor. */
+export const JOB_VISITS_QUERY = /* GraphQL */ `
+  query JobVisits($id: EncodedId!, $first: Int!, $after: String) {
+    job(id: $id) {
+      id
+      visits(first: $first, after: $after) {
+        nodes {
+          id
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+`;
+
 export const USERS_QUERY = /* GraphQL */ `
   query JobberUsers($first: Int!) {
     users(first: $first) {

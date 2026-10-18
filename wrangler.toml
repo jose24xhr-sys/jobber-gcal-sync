@@ -20,7 +20,7 @@ GOOGLE_AUTH_MODE = "service_account"
 DEFAULT_TIMEZONE = "America/New_York"
 # Webhook topics this worker will act on. Anything else is logged as "Skipped non-job event".
 # Confirm the exact names in the Jobber Developer Center / GraphiQL (graphql/introspect-webhook-topics.graphql).
-ALLOWED_TOPICS = "VISIT_CREATE,VISIT_UPDATE,VISIT_COMPLETE,VISIT_DESTROY,JOB_UPDATE,JOB_DESTROY,APP_DISCONNECT"
+ALLOWED_TOPICS = "VISIT_CREATE,VISIT_UPDATE,VISIT_COMPLETE,VISIT_DESTROY,JOB_CREATE,JOB_UPDATE,JOB_DESTROY,APP_DISCONNECT"
 EVENT_TITLE_PREFIX = ""
 # Not secret (public identifiers) — kept here so deploys never drop them.
 JOBBER_CLIENT_ID = "8e03ed08-18b0-4477-bcb6-46b2ecaa1c13"

@@ -203,6 +203,24 @@ describe("Job Visit -> Google Calendar", () => {
     expect(ev.end).toEqual({ date: "2026-10-21" });
   });
 
+  it("JOB_CREATE syncs every scheduled visit of the new job; the later VISIT_CREATE is a no-op", async () => {
+    const h = await setup();
+    const jobId = gid("Job", 777);
+    const job = { __typename: "Job", id: jobId, jobNumber: 777, title: "Repaint", jobberWebUri: "https://secure.getjobber.com/work_orders/777" };
+    const v1 = makeVisit(71, { job });
+    const v2 = makeVisit(72, { job, startAt: "2026-10-22T14:00:00Z", endAt: "2026-10-22T15:00:00Z" });
+    const unscheduled = makeVisit(73, { job, startAt: null, endAt: null });
+    for (const v of [v1, v2, unscheduled]) h.jobber.visits.set(v.id, v);
+
+    await consume(h.env, msg("JOB_CREATE", jobId));
+    expect(h.google.live(CAL_ANA)).toHaveLength(2);
+    const writes = h.google.writeCalls().length;
+
+    await consume(h.env, msg("VISIT_CREATE", v1.id), msg("VISIT_CREATE", v2.id));
+    expect(h.google.live(CAL_ANA)).toHaveLength(2);
+    expect(h.google.writeCalls().length).toBe(writes);
+  });
+
   it("JOB_DESTROY removes every tracked visit of that job", async () => {
     const h = await setup();
     h.jobber.visits.set(VISIT_1, makeVisit(1, { assignedUsers: { nodes: [{ id: USER_ANA }, { id: USER_BEN }] } }));

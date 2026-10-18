@@ -62,6 +62,7 @@ SELECT label, jobber_user_id, google_calendar_id, active FROM user_calendar_map;
 ## Behaviour reference
 
 - **Idempotent:** the event ID is derived from (account, visit, user). Repeated or duplicate webhooks never create duplicates. An unchanged visit causes zero Google writes (`noop`).
+- **New jobs:** `JOB_CREATE` fetches every visit of the new job (up to 100) and syncs each one. Jobber also sends `VISIT_CREATE` per visit, so this is a safety net, and the duplicates are no-ops.
 - **Deletes survive the visit being gone:** the visit→event mapping is stored before the event is created.
 - **Retries:** network errors, 429 and 5xx are retried inline, then by the queue with backoff (15 s → 15 min, 8 attempts), then sent to the DLQ. Config errors that won't fix themselves (calendar not shared) are logged and not retried. A bad Google key **is** retried, so visits sync once the key is fixed.
 - **Token safety:** Jobber refresh-token rotation is handled with a single-refresher lock. Tokens are AES-GCM encrypted in D1 and never logged.
@@ -70,4 +71,4 @@ SELECT label, jobber_user_id, google_calendar_id, active FROM user_calendar_map;
 ## Verified live in the reference build (Oct 17, 2026)
 - Webhook received → HMAC verified → queued → Jobber GraphQL fetch → Google event created on the mapped calendar, with correct time and address
 - Duplicate follow-up webhook recognized (`noop`)
-- Reschedule, reassign, unschedule, delete and Request/Quote filtering are covered by the automated test suite (64 tests); run the Phase 9 table on each new install.
+- Reschedule, reassign, unschedule, delete and Request/Quote filtering are covered by the automated test suite (65 tests); run the Phase 9 table on each new install.

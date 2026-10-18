@@ -23,7 +23,7 @@
 
 - **Browser access** to all of the above. An agent can do almost everything through Claude in Chrome. Exceptions: sign-ins, pasting secrets, approving OAuth screens, and downloading the Google key file are done by the human.
 - **Node.js 20+ and npm**, only to run the tests or deploy from a terminal. The normal path deploys from GitHub with no local terminal.
-- **Optional:** the Cloudflare MCP connector (D1 queries, creating databases). The repo `jose24xhr-sys/jobber-gcal-sync` holds the complete, tested code: 64 tests.
+- **Optional:** the Cloudflare MCP connector (D1 queries, creating databases). The repo `jose24xhr-sys/jobber-gcal-sync` holds the complete, tested code: 65 tests.
 
 ## 3. Cloudflare resources
 
@@ -45,7 +45,7 @@
 | `JOBBER_REDIRECT_URI` | `https://jobber-gcal-sync.<subdomain>.workers.dev/oauth/jobber/callback` | Must match the Jobber app's Callback URL exactly |
 | `GOOGLE_AUTH_MODE` | `service_account` | Or `oauth` (not recommended) |
 | `DEFAULT_TIMEZONE` | `America/New_York` | Used only for all-day visits |
-| `ALLOWED_TOPICS` | `VISIT_CREATE,VISIT_UPDATE,VISIT_COMPLETE,VISIT_DESTROY,JOB_UPDATE,JOB_DESTROY,APP_DISCONNECT` | Webhook topics acted on |
+| `ALLOWED_TOPICS` | `VISIT_CREATE,VISIT_UPDATE,VISIT_COMPLETE,VISIT_DESTROY,JOB_CREATE,JOB_UPDATE,JOB_DESTROY,APP_DISCONNECT` | Webhook topics acted on |
 | `EVENT_TITLE_PREFIX` | *(empty)* or `[Jobber]` | Optional prefix on event titles |
 | `JOBBER_CLIENT_ID` | from the Jobber app | Public identifier |
 | `GOOGLE_SA_CLIENT_EMAIL` | `jobber-sync@<project>.iam.gserviceaccount.com` | Service account identity |
@@ -70,7 +70,7 @@ Never commit secrets, put them in URLs, or paste them into chat.
 | Callback URL | `https://jobber-gcal-sync.<subdomain>.workers.dev/oauth/jobber/callback` |
 | Short description | Required to save |
 | Scopes (read only) | **Clients**, **Jobs**, **Scheduled Items**, **Users** — no Write boxes |
-| Webhooks (all → `https://jobber-gcal-sync.<subdomain>.workers.dev/webhooks/jobber`) | `VISIT_CREATE`, `VISIT_UPDATE`, `VISIT_COMPLETE`, `VISIT_DESTROY`, `JOB_UPDATE`, `JOB_DESTROY`, `APP_DISCONNECT` |
+| Webhooks (all → `https://jobber-gcal-sync.<subdomain>.workers.dev/webhooks/jobber`) | `VISIT_CREATE`, `VISIT_UPDATE`, `VISIT_COMPLETE`, `VISIT_DESTROY`, `JOB_CREATE`, `JOB_UPDATE`, `JOB_DESTROY`, `APP_DISCONNECT` |
 | Refresh token rotation | **ON** (default) |
 
 ## 6. Google settings

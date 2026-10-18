@@ -10,6 +10,7 @@ export const DEFAULT_ALLOWED_TOPICS = [
   "VISIT_UPDATE",
   "VISIT_COMPLETE",
   "VISIT_DESTROY",
+  "JOB_CREATE",
   "JOB_UPDATE",
   "JOB_DESTROY",
   "APP_DISCONNECT",
@@ -18,6 +19,7 @@ export const DEFAULT_ALLOWED_TOPICS = [
 export type TopicKind =
   | "visit_upsert"
   | "visit_delete"
+  | "job_create"
   | "job_update"
   | "job_delete"
   | "app_disconnect"
@@ -42,6 +44,9 @@ export function classifyTopic(topic: string, env: Pick<Env, "ALLOWED_TOPICS">): 
   const [object, ...rest] = t.split("_");
   const action = rest.join("_");
   if (object === "VISIT") return DELETE_ACTIONS.has(action) ? "visit_delete" : "visit_upsert";
-  if (object === "JOB") return DELETE_ACTIONS.has(action) ? "job_delete" : "job_update";
+  if (object === "JOB") {
+    if (DELETE_ACTIONS.has(action)) return "job_delete";
+    return action === "CREATE" ? "job_create" : "job_update";
+  }
   return "ignored";
 }

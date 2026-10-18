@@ -108,6 +108,11 @@ export class FakeJobber {
     if (body.query.includes("VisitForCalendar")) {
       return Response.json({ data: { visit: this.visits.get(body.variables.id) ?? null } });
     }
+    if (body.query.includes("JobVisits")) {
+      const nodes = [...this.visits.values()].filter((v) => v.job?.id === body.variables.id).map((v) => ({ id: v.id }));
+      const job = nodes.length || body.variables.id ? { id: body.variables.id, visits: { nodes, pageInfo: { hasNextPage: false, endCursor: null } } } : null;
+      return Response.json({ data: { job } });
+    }
     if (body.query.includes("GetAccount")) return Response.json({ data: { account: { id: ACCOUNT_ID, name: "Test Co" } } });
     if (body.query.includes("JobberUsers")) {
       return Response.json({ data: { users: { nodes: [{ id: USER_ANA, name: { full: "Ana" } }, { id: USER_BEN, name: { full: "Ben" } }] } } });

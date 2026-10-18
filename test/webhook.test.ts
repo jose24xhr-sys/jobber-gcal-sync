@@ -72,6 +72,8 @@ describe("topic classification", () => {
     expect(classifyTopic("VISIT_COMPLETE", env)).toBe("visit_upsert");
     expect(classifyTopic("VISIT_DESTROY", env)).toBe("visit_delete");
     expect(classifyTopic("JOB_DESTROY", env)).toBe("job_delete");
+    expect(classifyTopic("JOB_CREATE", env)).toBe("job_create");
+    expect(classifyTopic("JOB_UPDATE", env)).toBe("job_update");
     expect(classifyTopic("REQUEST_CREATE", env)).toBe("ignored");
     expect(classifyTopic("QUOTE_UPDATE", env)).toBe("ignored");
   });

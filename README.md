@@ -39,7 +39,7 @@ A Request or Quote that is later converted into a Job does not sync. Only the Jo
 | Request/Assessment are separate types | `Assessment.request: Request!`. Assessments belong to Requests, not Jobs. | Schema overview |
 | Rate limits | 10,000-point cost bucket restoring at 500/s per app+account; 2,500 req / 5 min; throttling returns `errors[].extensions.code = "THROTTLED"` | API Rate Limits |
 
-**Not published in the public docs:** the exact webhook topic names. The docs say they are listed in the Developer Center and in `WebHookTopicEnum`, following `OBJECT_ACTION`. The Worker defaults to `VISIT_CREATE`, `VISIT_UPDATE`, `VISIT_COMPLETE`, `VISIT_DESTROY`, `JOB_UPDATE`, `JOB_DESTROY` and `APP_DISCONNECT`.
+**Not published in the public docs:** the exact webhook topic names. The docs say they are listed in the Developer Center and in `WebHookTopicEnum`, following `OBJECT_ACTION`. The Worker defaults to `VISIT_CREATE`, `VISIT_UPDATE`, `VISIT_COMPLETE`, `VISIT_DESTROY`, `JOB_CREATE`, `JOB_UPDATE`, `JOB_DESTROY` and `APP_DISCONNECT`.
 
 **Before go-live:**
 - Run `graphql/introspect-webhook-topics.graphql` in GraphiQL.
@@ -98,6 +98,7 @@ jobber-gcal-sync/
 |---|---|
 | `VISIT_CREATE` / `VISIT_UPDATE` / `VISIT_COMPLETE` | Fetch the visit fresh from Jobber, then validate it. On success, make Google match the current state. On failure, log the reason and remove any events previously created for it (unscheduled, unassigned or gone). |
 | `VISIT_DESTROY` | Delete every event recorded in `visit_events` for that visit. No Jobber lookup is needed. |
+| `JOB_CREATE` | Fetch every visit of the new job (up to 100) and sync each one. A safety net: Jobber also sends `VISIT_CREATE` per visit, and the duplicates are no-ops. |
 | `JOB_UPDATE` | Re-sync every tracked visit of that job, because job title, address or instruction edits may not fire per-visit webhooks. |
 | `JOB_DESTROY` | Delete every tracked visit of that job. |
 | `APP_DISCONNECT` | Mark the account `disconnected`. |
@@ -165,7 +166,7 @@ curl -X PUT https://<worker>/admin/mappings \
 4. Leave **Refresh Token Rotation on**. The Worker is built for it.
 5. Under **Webhooks**, add each topic with URL `https://<your-worker>.workers.dev/webhooks/jobber`:
    - `VISIT_CREATE`, `VISIT_UPDATE`, `VISIT_COMPLETE`, `VISIT_DESTROY`
-   - `JOB_UPDATE`, `JOB_DESTROY`
+   - `JOB_CREATE`, `JOB_UPDATE`, `JOB_DESTROY`
    - `APP_DISCONNECT`
    - Do **not** subscribe to `REQUEST_*`, `QUOTE_*`, `ASSESSMENT_*` or `INVOICE_*`. They would be ignored anyway, but subscribing wastes volume.
 6. Copy the **Client ID** and **Client secret** into Worker secrets. The client secret also signs the webhooks.

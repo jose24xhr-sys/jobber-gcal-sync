@@ -44,7 +44,7 @@ Use the checklist in `01-REQUIREMENTS.md §7`. Decide names now:
 2. 🤖 Copy the reference code into it. Either copy the source repo, or push the `jobber-gcal-sync.zip` contents. If an agent pushes from its own workspace, its GitHub app must have access. The safe way: install the **Claude** GitHub app with *Only select repositories → `<REPO>`* (👤 approves).
 3. 🤖 Keep `wrangler.toml` placeholders for now; Phase 3 fills them.
 
-**Verify:** the repo shows `src/`, `test/`, `migrations/`, `wrangler.toml`, `README.md`. Optional: `npm ci && npm test` → **64 passed**.
+**Verify:** the repo shows `src/`, `test/`, `migrations/`, `wrangler.toml`, `README.md`. Optional: `npm ci && npm test` → **65 passed**.
 
 ---
 
@@ -84,11 +84,11 @@ From now on, **every push to `main` redeploys automatically**, in about 1 minute
 2. 🤖 Manage Apps → **New**. Fill in:
    - App name, Developer name, **Callback URL** `<WORKER_URL>/oauth/jobber/callback`, **Short description** (required).
    - **Scopes**: toggle ON **Clients**, **Jobs**, **Scheduled Items**, **Users**. Leave **Write** unchecked.
-   - **Webhooks**: add 7 rows, all with URL `<WORKER_URL>/webhooks/jobber`: `VISIT_CREATE`, `VISIT_UPDATE`, `VISIT_COMPLETE`, `VISIT_DESTROY`, `JOB_UPDATE`, `JOB_DESTROY`, `APP_DISCONNECT`.
+   - **Webhooks**: add 8 rows, all with URL `<WORKER_URL>/webhooks/jobber`: `VISIT_CREATE`, `VISIT_UPDATE`, `VISIT_COMPLETE`, `VISIT_DESTROY`, `JOB_CREATE`, `JOB_UPDATE`, `JOB_DESTROY`, `APP_DISCONNECT`.
      - ⚠️ The topic picker is a type-ahead. **Click the option**; pressing Enter selects the first item in the full list (`APP_CONNECT`).
    - Refresh token rotation: leave **ON**.
    - **Save App**.
-3. 🤖 Read back all 7 topic/URL pairs (e.g. from the form's input values) before saving.
+3. 🤖 Read back all 8 topic/URL pairs (e.g. from the form's input values) before saving.
 
 **Verify:** "App updated" toast. The Authorization section shows Client ID and Client Secret.
 

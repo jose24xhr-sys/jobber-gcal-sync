@@ -1,7 +1,7 @@
 import type { Env, SyncMessage } from "../env";
 import * as repo from "../db/repo";
 import { classifyTopic } from "../config";
-import { jobberGraphQL, VISIT_QUERY, type JobberVisit } from "../jobber/graphql";
+import { jobberGraphQL, JOB_VISITS_QUERY, VISIT_QUERY, type JobberVisit } from "../jobber/graphql";
 import { isDefinitelyNot } from "../jobber/ids";
 import { deleteCalendarEvent, upsertCalendarEvent } from "../google/calendar";
 import { buildEventBody, contentHash, deterministicEventId } from "./mapEvent";
@@ -70,6 +70,14 @@ export async function processMessage(env: Env, msg: SyncMessage): Promise<void> 
       await removeVisit(ctx, msg.itemId, "visit deleted in Jobber");
       return;
 
+    case "job_create": {
+      // Safety net: Jobber also sends VISIT_CREATE per visit, but sync every visit of a new job in case one is missed.
+      const visitIds = await listJobVisitIds(env, msg.accountId, msg.itemId);
+      for (const id of visitIds) await syncVisit(ctx, id);
+      if (visitIds.length === 0) await record(ctx, { action: "noop", jobId: msg.itemId, reason: "new job has no visits yet" });
+      return;
+    }
+
     case "job_update": {
       // Job title/property/assignment edits may not fire per-visit webhooks; re-sync visits we track.
       const visitIds = await repo.listVisitIdsForJob(env.DB, msg.accountId, msg.itemId);
@@ -84,6 +92,22 @@ export async function processMessage(env: Env, msg: SyncMessage): Promise<void> 
       return;
     }
   }
+}
+
+export const MAX_JOB_VISITS = 100;
+
+async function listJobVisitIds(env: Env, accountId: string, jobId: string): Promise<string[]> {
+  const ids: string[] = [];
+  let after: string | null = null;
+  while (ids.length < MAX_JOB_VISITS) {
+    const data: { job: { visits: { nodes: { id: string }[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } } | null } =
+      await jobberGraphQL(env, accountId, JOB_VISITS_QUERY, { id: jobId, first: 25, after });
+    if (!data.job) break;
+    ids.push(...data.job.visits.nodes.map((n) => n.id));
+    if (!data.job.visits.pageInfo.hasNextPage || !data.job.visits.pageInfo.endCursor) break;
+    after = data.job.visits.pageInfo.endCursor;
+  }
+  return ids.slice(0, MAX_JOB_VISITS);
 }
 
 /** Fetch current state from Jobber and make Google match it. Order-independent and idempotent. */
