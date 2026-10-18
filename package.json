@@ -1,0 +1,23 @@
+{
+  "name": "jobber-gcal-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Near real-time Jobber Job Visits -> Google Calendar sync on Cloudflare Workers",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 migrations apply jobber_gcal_sync --local",
+    "db:migrate:remote": "wrangler d1 migrations apply jobber_gcal_sync --remote",
+    "sign": "node scripts/sign-webhook.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261013.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.4",
+    "wrangler": "^4.150.0"
+  }
+}

@@ -1,0 +1,44 @@
+name = "jobber-gcal-sync"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+[observability]
+enabled = true
+
+# Non-secret configuration. Secrets are set with `wrangler secret put` (see README).
+[vars]
+# Latest active Jobber GraphQL version per the changelog (checked 2026-10-13).
+JOBBER_API_VERSION = "2026-09-25"
+# Must match the OAuth Callback URL configured on the Jobber app exactly.
+JOBBER_REDIRECT_URI = "https://jobber-gcal-sync.YOUR-SUBDOMAIN.workers.dev/oauth/jobber/callback"
+# "service_account" (recommended) or "oauth"
+GOOGLE_AUTH_MODE = "service_account"
+# Used only for all-day visits (Google all-day events need a calendar date).
+DEFAULT_TIMEZONE = "America/New_York"
+# Webhook topics this worker will act on. Anything else is logged as "Skipped non-job event".
+# Confirm the exact names in the Jobber Developer Center / GraphiQL (graphql/introspect-webhook-topics.graphql).
+ALLOWED_TOPICS = "VISIT_CREATE,VISIT_UPDATE,VISIT_COMPLETE,VISIT_DESTROY,JOB_UPDATE,JOB_DESTROY,APP_DISCONNECT"
+EVENT_TITLE_PREFIX = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "jobber_gcal_sync"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[[queues.producers]]
+binding = "SYNC_QUEUE"
+queue = "jobber-visit-sync"
+
+[[queues.consumers]]
+queue = "jobber-visit-sync"
+max_batch_size = 10
+max_batch_timeout = 1
+max_retries = 8
+# One consumer at a time: serializes Jobber token refreshes and per-visit writes.
+max_concurrency = 1
+dead_letter_queue = "jobber-visit-sync-dlq"
+
+# Daily housekeeping (prunes expired OAuth states and old sync_log rows).
+[triggers]
+crons = ["17 4 * * *"]

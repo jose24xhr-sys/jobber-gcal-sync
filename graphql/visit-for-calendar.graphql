@@ -1,0 +1,46 @@
+# The exact query the Worker runs for every VISIT_* webhook (mirrors VISIT_QUERY in src/jobber/graphql.ts).
+# Paste into Jobber's GraphiQL with variables {"id": "<itemId from a webhook>"} to confirm it against your API version.
+# Header: X-JOBBER-GRAPHQL-VERSION: 2026-09-25
+query VisitForCalendar($id: EncodedId!) {
+  visit(id: $id) {
+    __typename
+    id
+    title
+    startAt          # null when unscheduled
+    endAt            # null when unscheduled
+    allDay
+    instructions
+    visitStatus
+    isComplete
+    job {            # Visit.job is Job! (non-null) — this is the Visit -> Job relationship
+      __typename
+      id
+      jobNumber
+      title
+      jobberWebUri
+    }
+    client {
+      id
+      name
+    }
+    property {
+      id
+      address {
+        street1
+        street2
+        city
+        province
+        postalCode
+        country
+      }
+    }
+    assignedUsers(first: 25) {
+      nodes {
+        id
+        name {
+          full
+        }
+      }
+    }
+  }
+}

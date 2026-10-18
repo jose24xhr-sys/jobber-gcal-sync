@@ -1,0 +1,18 @@
+# Run once in Jobber's GraphiQL to see the exact webhook topic names your API version supports.
+# The Worker defaults to VISIT_CREATE, VISIT_UPDATE, VISIT_COMPLETE, VISIT_DESTROY, JOB_UPDATE, JOB_DESTROY, APP_DISCONNECT.
+# If the names differ (e.g. VISIT_DELETE), update ALLOWED_TOPICS in wrangler.toml — no code change needed.
+query WebhookTopics {
+  __type(name: "WebHookTopicEnum") {
+    enumValues {
+      name
+      description
+    }
+  }
+}
+
+# Also worth confirming once (field names used by the sync):
+query VisitFields {
+  visit: __type(name: "Visit") { fields { name type { name kind ofType { name } } } }
+  address: __type(name: "PropertyAddress") { fields { name } }
+  name: __type(name: "Name") { fields { name } }
+}

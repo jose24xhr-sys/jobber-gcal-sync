@@ -1,0 +1,22 @@
+# Copy to .dev.vars for `wrangler dev` (never commit .dev.vars). In production use `wrangler secret put`.
+JOBBER_CLIENT_ID=
+JOBBER_CLIENT_SECRET=
+# 32 random bytes, base64: openssl rand -base64 32
+TOKEN_ENCRYPTION_KEY=
+# Long random string for /admin/* and /oauth/jobber/start: openssl rand -hex 32
+ADMIN_API_TOKEN=
+
+# Google — service account mode (GOOGLE_AUTH_MODE=service_account)
+GOOGLE_SA_CLIENT_EMAIL=
+# Paste the private_key value from the JSON key file (keep the \n escapes)
+GOOGLE_SA_PRIVATE_KEY=
+# Optional, Workspace domain-wide delegation only
+GOOGLE_SA_SUBJECT=
+
+# Google — OAuth mode (GOOGLE_AUTH_MODE=oauth)
+GOOGLE_OAUTH_CLIENT_ID=
+GOOGLE_OAUTH_CLIENT_SECRET=
+GOOGLE_OAUTH_REFRESH_TOKEN=
+
+# Local override of the public callback (must also be added in the Jobber app if you test OAuth locally through a tunnel)
+# JOBBER_REDIRECT_URI=https://<your-tunnel>/oauth/jobber/callback
