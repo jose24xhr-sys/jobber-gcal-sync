@@ -1,5 +1,7 @@
 # Jobber Job Visits → Google Calendar (near real-time)
 
+> **Replicating this for another business?** Start with [`docs/`](docs/): requirements, a phase-by-phase replication guide, operations/troubleshooting, and a paste-ready agent prompt (PDFs in `docs/pdf/`).
+
 A Cloudflare Worker that mirrors **scheduled Jobber Job Visits** into each assigned team member's Google Calendar within seconds. It replaces Jobber's iCal subscription, which can take 12–24 hours to refresh. Routemize then reads those calendars as availability blocks.
 
 ```
@@ -139,7 +141,7 @@ See `migrations/0001_init.sql`:
 - **`visit_events`**: (account, visit, user) → (job, calendar, Google event ID, content hash).
 - **`sync_log`**: audit trail of created, updated, deleted, noop, skipped and error actions, pruned after 30 days by the cron.
 
-**Mapping strategy.** After connecting Jobber, call `GET /admin/jobber/users?accountId=…`. It lists every Jobber user with their `id` and current mapping. Then `PUT` one mapping per estimator or tech:
+**Mapping strategy.** The easiest way is the browser page `https://<worker>/admin`: enter the admin token, type each team member's Calendar ID and save. Alternatively, call `GET /admin/jobber/users?accountId=…`. It lists every Jobber user with their `id` and current mapping. Then `PUT` one mapping per estimator or tech:
 
 ```bash
 curl -X PUT https://<worker>/admin/mappings \
@@ -167,7 +169,7 @@ curl -X PUT https://<worker>/admin/mappings \
    - `APP_DISCONNECT`
    - Do **not** subscribe to `REQUEST_*`, `QUOTE_*`, `ASSESSMENT_*` or `INVOICE_*`. They would be ignored anyway, but subscribing wastes volume.
 6. Copy the **Client ID** and **Client secret** into Worker secrets. The client secret also signs the webhooks.
-7. After deploying, open `https://<worker>/oauth/jobber/start?key=<ADMIN_API_TOKEN>` as a Jobber **admin** user and click **Allow Access**. The success page shows the Jobber **account ID**, which you need for mappings.
+7. After deploying, open `https://<worker>/oauth/jobber/start`, enter the `ADMIN_API_TOKEN` in the password box, then (as a Jobber **admin** user) click **Allow Access**. The success page shows the Jobber **account ID**, which you need for mappings.
 
 ---
 
@@ -340,7 +342,8 @@ curl -X POST https://<worker>/admin/resync -H "authorization: Bearer $ADMIN_API_
 | Method & path | Purpose |
 |---|---|
 | `GET /health` | Liveness (no auth) |
-| `GET /oauth/jobber/start?key=…` | Begin Jobber connection |
+| `GET/POST /oauth/jobber/start` | Begin Jobber connection (password form) |
+| `GET/POST /admin` | Browser page: map team members → calendars, recent activity |
 | `GET /admin/accounts` | Connected accounts and status (no tokens) |
 | `GET /admin/jobber/users?accountId=…` | Jobber users and their current mapping |
 | `GET/PUT/DELETE /admin/mappings` | Manage user → calendar mapping |

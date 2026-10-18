@@ -55,7 +55,7 @@ export async function handleJobberCallback(env: Env, request: Request): Promise<
 
   return html(
     200,
-    `Connected Jobber account <b>${escapeHtml(data.account.name)}</b>.<br>Account ID: <code>${escapeHtml(data.account.id)}</code><br>Next: map team members with <code>PUT /admin/mappings</code>.`,
+    `Connected Jobber account <b>${escapeHtml(data.account.name)}</b>.<br>Account ID: <code>${escapeHtml(data.account.id)}</code><br>Next: <a href="/admin">map team members to their Google Calendars</a>.`,
   );
 }
 
